@@ -55,9 +55,10 @@ def tagging(input_dir, output_dir, index_id, index_text_to_tag):
     
     with open(output_dir+"/list_files_processed.dat",'a') as list_files:    
         for file in onlyfiles_toprocess:    
-            process(file, output_dir, index_id, index_text_to_tag)
-            list_files.write(os.path.basename(file)+"\n")
-            list_files.flush()
+            ret = process(file, output_dir, index_id, index_text_to_tag)
+            if(ret==0):
+                list_files.write(os.path.basename(file)+"\n")
+                list_files.flush()
     
 def process(input_file, output_dir, index_id, index_text_to_tag):
     logging.info("Tagging intup file  : " + input_file + " ,  output directory : "  + output_dir)
@@ -85,9 +86,9 @@ def process(input_file, output_dir, index_id, index_text_to_tag):
                     logging.debug( "Full Line :  " + line)
                     logging.error("The cause probably: contained an invalid character ")
                     total_articles_errors = total_articles_errors + 1
-    call_disease_tagger(disease_tagger_format_file, output_dir + "/" + os.path.basename(input_file))
+    ret = call_disease_tagger(disease_tagger_format_file, output_dir + "/" + os.path.basename(input_file))
     logging.info("Tagging  Finish For " + input_file + ".  output file : "  + output_file + ", articles with error : " + str(total_articles_errors))    
-        
+    return ret    
 
 def call_disease_tagger(disease_tagger_format_file, output_file):
     #./RunDNorm.sh config/banner_NCBIDisease_TEST.xml data/CTD_diseases.tsv output/simmatrix_NCBIDisease_e4.bin sample.txt sample-out2.txt
@@ -96,4 +97,5 @@ def call_disease_tagger(disease_tagger_format_file, output_file):
     #resp=call(["./RunDNorm.sh","lib/config/banner_NCBIDisease_TEST.xml", "lib/data/CTD_diseases.tsv", "lib/output/simmatrix_NCBIDisease_e4.bin", disease_tagger_format_file, output_file],   shell=True)
     if(resp==1):
         logging.error("DNorm error, Tagging input folder  : " + disease_tagger_format_file + ".  output file : "  + output_file)
-    
+        return 1
+    return 0
